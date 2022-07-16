@@ -3,7 +3,7 @@
 This driver supports LCD peripherals built on the HD44780 chip and controlled with the PCF8574 chip.
 
 NOTE: these drivers are not production-ready. There is no guarantee
-of correctness, completeness or robustness. Its only testet for a 16x2 LCD!
+of correctness, completeness or robustness. Its only testet on an 16x2 LCD!
 
 This driver is based on the [lcd-pcf8574-androidthings driver from Nilhcem](https://github.com/Nilhcem/lcd-pcf8574-androidthings)
 and the [hd44780-i2c driver from gorskima](https://github.com/gorskima/hd44780-i2c) and the [hd44780-i2c androidthings-drivers from leinardi](https://github.com/leinardi/androidthings-drivers)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Roberto Leinardi.
+ * Copyright 2018 Roberto Leinardi.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import android.util.Log;
-
-import androidx.annotation.IntDef;
-import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManager;
+import com.pi4j.Pi4J;
+import com.pi4j.context.Context;
+import com.pi4j.io.i2c.I2C;
+import com.pi4j.io.i2c.I2CConfig;
+import com.pi4j.io.i2c.I2CProvider;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
@@ -84,36 +83,43 @@ public class Hd44780 implements AutoCloseable {
     private boolean mBacklight;
     private byte mDisplayControl; // cursor, display, blink flags
     private byte mDisplayMode; // left2right, autoscroll
-    private I2cDevice mI2cDevice;
+    private I2C mI2cDevice;
     private int mCurrentCol;
     private int mCurrentRow;
+
+    //Gemoetry contants
+    public static final int LCD_8X1 = 0;
+    public static final int LCD_16X2 = 1;
+    public static final int LCD_20X2 = 2;
+    public static final int LCD_20X4 = 3;
 
     /**
      * Create a new Hd44780 driver connected to the named I2C bus and address
      * with the given geometry.
      *
-     * @param i2cName    I2C bus name the display is connected to
      * @param i2cAddress I2C address of the display
      * @param geometry   geometry of the LCD. See {@link Geometry}.
      */
-    public Hd44780(String i2cName, int i2cAddress, @Geometry int geometry) throws IOException {
-        this(i2cName, i2cAddress, geometry, false);
+    public Hd44780(int busid, int i2cAddress, @Geometry int geometry) throws IOException {
+        this(busid, i2cAddress, geometry, false);
     }
 
     /**
      * Create a new Hd44780 driver connected to the named I2C bus and address
      * with the given geometry.
      *
-     * @param i2cName     I2C bus name the display is connected to
      * @param i2cAddress  I2C address of the display
      * @param geometry    geometry of the LCD. See {@link Geometry}.
      * @param use5x10Dots True to use a 10 pixel high font, false for the 8 pixel (default). It only works
      *                    for some 1 line displays.
      * @throws IOException
      */
-    public Hd44780(String i2cName, int i2cAddress, @Geometry int geometry, boolean use5x10Dots) throws IOException {
+    public Hd44780(int busid, int i2cAddress, @Geometry int geometry, boolean use5x10Dots) throws IOException {
         mLcdGeometry = GEOMETRIES[geometry];
-        I2cDevice device = PeripheralManager.getInstance().openI2cDevice(i2cName, i2cAddress);
+        Context pi4j = Pi4J.newAutoContext();
+        I2CProvider i2cProvider = pi4j.provider("linuxfs-i2c");
+        I2CConfig i2CConfig = com.pi4j.io.i2c.I2C.newConfigBuilder(pi4j).id(busid+": device "+i2cAddress).bus(busid).device(i2cAddress).build();
+        I2C device = i2cProvider.create(i2CConfig);
         try {
             init(device, use5x10Dots);
         } catch (IOException | RuntimeException e) {
@@ -131,7 +137,7 @@ public class Hd44780 implements AutoCloseable {
      *
      * @throws IOException
      */
-    private void init(I2cDevice device, boolean use5x10Dots) throws IOException {
+    private void init(I2C device, boolean use5x10Dots) throws IOException {
         mI2cDevice = device;
 
         byte displayFunction = 0; // lines and dots mode
@@ -516,12 +522,11 @@ public class Hd44780 implements AutoCloseable {
         try {
             Thread.sleep(millis, (int) nanos);
         } catch (InterruptedException e) {
-            Log.e(TAG, "InterruptedException", e);
+            e.printStackTrace();
         }
     }
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({Geometry.LCD_8X1, Geometry.LCD_16X2, Geometry.LCD_20X2, Geometry.LCD_20X4})
     public @interface Geometry {
         int LCD_8X1 = 0;
         int LCD_16X2 = 1;

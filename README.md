@@ -1,10 +1,8 @@
-# HD44780 LCD driver for Android Things
+# HD44780 LCD driver for pi4J
 
 This driver supports LCD peripherals built on the HD44780 chip and controlled with the PCF8574 chip.
 
-NOTE: these drivers are not production-ready. They are offered as sample
-implementations of Android Things user space drivers for common peripherals
-as part of the Developer Preview release. There is no guarantee
+NOTE: these drivers are not production-ready. There is no guarantee
 of correctness, completeness or robustness. Its only testet for a 16x2 LCD!
 
 This driver is based on the [lcd-pcf8574-androidthings driver from Nilhcem](https://github.com/Nilhcem/lcd-pcf8574-androidthings)
